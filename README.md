@@ -34,10 +34,12 @@
 ## ✨ Funcionalidades
 
 - 🔐 **Autenticação** — cadastro, login e edição de perfil
-- 📌 **Avistamentos** — criar, editar, excluir e listar, com localização em mapa
+- 📌 **Avistamentos** — criar, listar e visualizar registros com localização
+- 💬 **Comentários em avistamentos** — qualquer usuário autenticado pode comentar em qualquer registro
 - 🗺️ **Mapa interativo** — visualização com Leaflet
 - 📊 **Dashboard** — estatísticas gerais (avistamentos, usuários e últimos registros)
-- 🛡️ **Painel administrativo** — gerenciamento de usuários e moderação de avistamentos
+- 🛡️ **Painel administrativo** — gerenciamento de usuários, papéis e moderação de avistamentos
+- 🧑‍💼 **Criação de administradores** — script para criar contas de admin com nome, e-mail e senha definidos pelo responsável
 
 ---
 
@@ -86,7 +88,7 @@ SA-Samuca_Little-Ville/
 ### 🖥️ Backend
 
 ```bash
-# na raiz do projeto
+# na pasta backend
 npm install
 
 # configure a variável DATABASE_URL em um arquivo .env
@@ -95,6 +97,21 @@ npm install
 npx prisma migrate dev
 npm run dev
 ```
+
+### 👑 Criar um administrador
+
+No diretório `backend`, execute:
+
+```bash
+node createadmin.js
+```
+
+O script vai perguntar:
+- nome do administrador
+- e-mail
+- senha
+
+Ele cria o usuário com `role: "ADMIN"` e permite criar vários administradores diferentes, desde que o e-mail seja único.
 
 ### 🎨 Frontend
 
@@ -115,9 +132,10 @@ npm run dev
 | `POST` | `/auth/register` | 🆕 Cria um novo usuário |
 | `POST` | `/auth/login` | 🔑 Autentica um usuário |
 | `PUT` | `/auth/profile` | ✏️ Atualiza o perfil do usuário logado |
-| `GET` | `/sightings` | 📋 Lista todos os avistamentos |
+| `GET` | `/sightings` | 📋 Lista todos os avistamentos com comentários |
 | `GET` | `/sightings/:id` | 🔍 Busca um avistamento específico |
 | `POST` | `/sightings` | ➕ Cria um novo avistamento |
+| `POST` | `/sightings/:id/comments` | 💬 Cria um comentário em um avistamento |
 | `PUT` | `/sightings/:id` | ✏️ Atualiza um avistamento |
 | `DELETE` | `/sightings/:id` | 🗑️ Remove um avistamento |
 | `GET` | `/sightings/stats` | 📊 Estatísticas do dashboard |
@@ -127,6 +145,14 @@ npm run dev
 | `DELETE` | `/admin/sightings/:id` | 🗑️ Remove um avistamento (admin) |
 
 </div>
+
+---
+
+## 🔒 Regras de acesso
+
+- qualquer usuário autenticado pode visualizar avistamentos e comentar
+- edição e exclusão de avistamentos ficam na área administrativa
+- apenas usuários com `role = "ADMIN"` acessam o painel de administração
 
 ---
 
