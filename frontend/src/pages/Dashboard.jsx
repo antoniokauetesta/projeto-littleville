@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { Link } from "react-router-dom";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import L from "leaflet";
 import api from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -156,6 +158,21 @@ export default function Dashboard() {
   }
 
   const recentSightings = [...sightings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+  const mySightings = sightings.filter((sighting) => String(sighting.userId) === String(user?.id));
+  const myComments = sightings.reduce(
+    (total, sighting) => total + (sighting.comments || []).filter((comment) => comment.userId === user?.id).length,
+    0,
+  );
+  const activityData = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (6 - index));
+    const dayKey = date.toISOString().slice(0, 10);
+    return {
+      name: date.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+      total: sightings.filter((sighting) => sighting.createdAt && new Date(sighting.createdAt).toISOString().slice(0, 10) === dayKey).length,
+    };
+  });
 
   return (
     <>
@@ -182,6 +199,42 @@ export default function Dashboard() {
           <div className="stat-value">{sightings.length}</div>
           <div className="stat-label">Locais Marcados</div>
         </div>
+      </div>
+
+      <div className="dashboard-insights">
+        <section className="insight-panel">
+          <div className="section-header">
+            <div>
+              <span className="activity-label">RITMO DA COMUNIDADE</span>
+              <h2>Atividade nos últimos 7 dias</h2>
+            </div>
+            <strong className="insight-total">{sightings.filter((sighting) => new Date(sighting.createdAt) >= new Date(Date.now() - 7 * 86400000)).length}</strong>
+          </div>
+          <div className="chart-wrap">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={activityData}>
+                <defs>
+                  <linearGradient id="activityFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#c9ee76" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#c9ee76" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#82918a", fontSize: 11 }} />
+                <Tooltip cursor={{ stroke: "#dce4db" }} contentStyle={{ border: "0", borderRadius: 8, fontSize: 12 }} />
+                <Area type="monotone" dataKey="total" stroke="#1f4a3d" strokeWidth={3} fill="url(#activityFill)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+        <section className="insight-panel personal-panel">
+          <span className="activity-label">SUA CONTRIBUIÇÃO</span>
+          <h2>Você está deixando rastros.</h2>
+          <div className="personal-metrics">
+            <div><strong>{mySightings.length}</strong><span>avistamentos</span></div>
+            <div><strong>{myComments}</strong><span>comentários</span></div>
+          </div>
+          <Link className="btn btn-primary btn-sm" to="/sightings">Explorar arquivo →</Link>
+        </section>
       </div>
 
       {/* Mapa */}

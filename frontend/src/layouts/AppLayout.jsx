@@ -35,9 +35,13 @@ export default function AppLayout() {
             <span className="nav-icon">03</span>
             <span>Perfil</span>
           </NavLink>
+          <NavLink to="/community">
+            <span className="nav-icon">04</span>
+            <span>Comunidade</span>
+          </NavLink>
           {user?.role === "ADMIN" && (
             <NavLink to="/admin">
-              <span className="nav-icon">04</span>
+              <span className="nav-icon">05</span>
               <span>Administração</span>
             </NavLink>
           )}
@@ -61,6 +65,9 @@ export default function AppLayout() {
             </div>
             <div className="user-meta">
               <div className="user-name">{user?.name || "Usuário"}</div>
+              <div className="user-role-label">
+                {user?.role === "ADMIN" ? "Administrador" : "Morador"}
+              </div>
               <div className="user-email">{user?.email || ""}</div>
             </div>
           </div>

@@ -3,6 +3,10 @@ import api from "../services/api";
 
 const AuthContext = createContext({});
 
+function welcomeKey(email) {
+  return `@littleville:welcome-pending:${email.trim().toLowerCase()}`;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,16 +24,21 @@ export function AuthProvider({ children }) {
   async function signIn(email, password, isAdmin = false) {
     const response = await api.post("/auth/login", { email, password, isAdmin });
     const { user, token } = response.data;
+    const pendingWelcomeKey = welcomeKey(user.email);
+    const welcomeVisitedKey = `@littleville:welcome-visited:${user.id}`;
+    const firstLogin = localStorage.getItem(welcomeVisitedKey) !== "true";
 
     localStorage.setItem("@littleville:user", JSON.stringify(user));
     localStorage.setItem("@littleville:token", token);
+    localStorage.removeItem(pendingWelcomeKey);
 
     setUser(user);
-    return user;
+    return { user, firstLogin };
   }
 
   async function signUp(name, email, password, isAdmin = false) {
     const response = await api.post("/auth/register", { name, email, password, isAdmin });
+    localStorage.setItem(welcomeKey(email), "true");
     return response.data.user;
   }
 

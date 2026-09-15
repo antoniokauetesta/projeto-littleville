@@ -7,8 +7,10 @@ import Sightings from "./pages/Sightings";
 import Profile from "./pages/Profile";
 import AppLayout from "./layouts/AppLayout";
 import Admin from "./pages/Admin";
+import Community from "./pages/Community";
+import Welcome from "./pages/Welcome";
 
-function PrivateRoute({ children }) {
+function AppShell() {
   const { signed, loading } = useAuth();
 
   if (loading) {
@@ -20,10 +22,10 @@ function PrivateRoute({ children }) {
   }
 
   if (!signed) {
-    return <Navigate to="/login" />;
+    return <Welcome />;
   }
 
-  return children;
+  return <AppLayout />;
 }
 
 function PublicRoute({ children }) {
@@ -48,19 +50,21 @@ function AdminRoute({ children }) {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <Routes>
           {/* Rotas Públicas */}
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
           {/* Rotas Protegidas */}
-          <Route path="/" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+          <Route path="/" element={<AppShell />}>
             <Route index element={<Navigate to="/dashboard" />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="sightings" element={<Sightings />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="community" element={<Community />} />
             <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
           </Route>
 

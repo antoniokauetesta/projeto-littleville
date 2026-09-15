@@ -19,8 +19,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const user = await signIn(email, password, isAdmin);
-      navigate(user.role === "ADMIN" ? "/admin" : "/dashboard");
+      const { user } = await signIn(email, password, isAdmin);
+      const welcomeVisited = localStorage.getItem(`@littleville:welcome-visited:${user.id}`) === "true";
+      const destination = welcomeVisited ? (user.role === "ADMIN" ? "/admin" : "/dashboard") : "/welcome";
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || "Erro ao fazer login");
     } finally {

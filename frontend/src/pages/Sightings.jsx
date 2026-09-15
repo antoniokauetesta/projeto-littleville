@@ -124,6 +124,29 @@ export default function Sightings() {
 
   const totalComments = sightings.reduce((sum, sighting) => sum + (sighting.comments?.length || 0), 0);
 
+  function exportCsv() {
+    const headers = ["ID", "Título", "Descrição", "Latitude", "Longitude", "Data", "Registrado por"];
+    const rows = filteredSightings.map((sighting) => [
+      sighting.id,
+      sighting.title,
+      sighting.description,
+      sighting.lat,
+      sighting.lng,
+      new Date(sighting.date).toLocaleDateString("pt-BR"),
+      sighting.user?.name || "",
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(";"))
+      .join("\n");
+    const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "little-ville-avistamentos.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       <div className="page-header">
@@ -134,9 +157,10 @@ export default function Sightings() {
 
       <div className="section-header">
         <h2>Lista completa</h2>
-        <button className="btn btn-primary btn-sm" onClick={openCreate}>
-          + Registrar avistamento
-        </button>
+        <div className="section-actions">
+          <button className="btn btn-secondary btn-sm" onClick={exportCsv} disabled={!filteredSightings.length}>↓ Exportar CSV</button>
+          <button className="btn btn-primary btn-sm" onClick={openCreate}>+ Registrar avistamento</button>
+        </div>
       </div>
 
       <div className="sightings-toolbar">
