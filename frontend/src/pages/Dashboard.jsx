@@ -54,6 +54,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
 
   function canManage(sighting) {
+    if (!sighting) return false;
     return user?.role === "ADMIN" || user?.id === sighting.userId;
   }
 
@@ -82,6 +83,11 @@ export default function Dashboard() {
   }
 
   function handleEdit(sighting) {
+    if (!canManage(sighting)) {
+      alert("Você só pode editar os seus próprios avistamentos.");
+      return;
+    }
+
     setEditingSighting(sighting);
     setForm({
       title: sighting.title,
@@ -94,6 +100,13 @@ export default function Dashboard() {
   }
 
   async function handleDelete(id) {
+    const sighting = sightings.find((item) => item.id === id);
+
+    if (!canManage(sighting)) {
+      alert("Você só pode deletar os seus próprios avistamentos ou pedir ajuda do administrador.");
+      return;
+    }
+
     if (!window.confirm("Tem certeza que deseja deletar este avistamento?")) return;
     try {
       await api.delete(`/sightings/${id}`);
@@ -141,6 +154,8 @@ export default function Dashboard() {
     setEditingSighting(null);
     setForm({ title: "", description: "", lat: "", lng: "" });
   }
+
+  const recentSightings = [...sightings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
 
   return (
     <>
@@ -216,7 +231,7 @@ export default function Dashboard() {
 
       {/* Tabela de Avistamentos */}
       <div className="section-header">
-        <h2>Avistamentos registrados</h2>
+        <h2>Avistamentos recentes</h2>
       </div>
       <div className="table-container">
         <table className="data-table">
@@ -230,14 +245,14 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {sightings.length === 0 ? (
+            {recentSightings.length === 0 ? (
               <tr>
                 <td colSpan="5" style={{ textAlign: "center", padding: 32, color: "var(--text-muted)" }}>
-                  Nenhum avistamento registrado ainda. Clique no mapa para adicionar! 🗺️
+                  Nenhum avistamento recente ainda. Clique no mapa para adicionar! 🗺️
                 </td>
               </tr>
             ) : (
-              sightings.map((s) => (
+              recentSightings.map((s) => (
                 <tr key={s.id}>
                   <td style={{ color: "var(--text-primary)", fontWeight: 600 }}>{s.title}</td>
                   <td>{s.description.length > 60 ? s.description.substring(0, 60) + "..." : s.description}</td>

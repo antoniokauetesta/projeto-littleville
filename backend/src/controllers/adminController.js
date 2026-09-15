@@ -2,7 +2,15 @@ import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
 
 function publicUser(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    bio: user.bio || "",
+    avatarUrl: user.avatarUrl || "",
+    createdAt: user.createdAt,
+  };
 }
 
 export async function listUsers(req, res) {

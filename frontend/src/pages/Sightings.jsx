@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import api from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -9,6 +9,8 @@ export default function Sightings() {
   const [editingSighting, setEditingSighting] = useState(null);
   const [form, setForm] = useState({ title: "", description: "", lat: "", lng: "" });
   const [commentDrafts, setCommentDrafts] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterMode, setFilterMode] = useState("all");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -105,6 +107,23 @@ export default function Sightings() {
     setForm({ title: "", description: "", lat: "", lng: "" });
   }
 
+  const filteredSightings = sightings.filter((s) => {
+    const matchesSearch =
+      !searchTerm ||
+      s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.user?.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      filterMode === "all" ||
+      (filterMode === "recent" && new Date(s.createdAt) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)) ||
+      (filterMode === "comments" && (s.comments || []).length > 0);
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const totalComments = sightings.reduce((sum, sighting) => sum + (sighting.comments?.length || 0), 0);
+
   return (
     <>
       <div className="page-header">
@@ -118,6 +137,41 @@ export default function Sightings() {
         <button className="btn btn-primary btn-sm" onClick={openCreate}>
           + Registrar avistamento
         </button>
+      </div>
+
+      <div className="sightings-toolbar">
+        <div className="search-box">
+          <span>🔎</span>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar por título, descrição ou autor"
+          />
+        </div>
+
+        <div className="filter-pills">
+          <button className={filterMode === "all" ? "filter-pill active" : "filter-pill"} onClick={() => setFilterMode("all")}>
+            Todos ({sightings.length})
+          </button>
+          <button className={filterMode === "recent" ? "filter-pill active" : "filter-pill"} onClick={() => setFilterMode("recent")}>
+            Recentes
+          </button>
+          <button className={filterMode === "comments" ? "filter-pill active" : "filter-pill"} onClick={() => setFilterMode("comments")}>
+            Com comentários ({sightings.filter((s) => (s.comments || []).length > 0).length})
+          </button>
+        </div>
+      </div>
+
+      <div className="activity-row">
+        <div className="activity-card">
+          <span className="activity-label">Total de comentários</span>
+          <strong>{totalComments}</strong>
+        </div>
+        <div className="activity-card">
+          <span className="activity-label">Resultado atual</span>
+          <strong>{filteredSightings.length} avistamentos</strong>
+        </div>
       </div>
 
       <div className="table-container">
@@ -134,25 +188,28 @@ export default function Sightings() {
             </tr>
           </thead>
           <tbody>
-            {sightings.length === 0 ? (
+            {filteredSightings.length === 0 ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: 32, color: "var(--text-muted)" }}>
-                  Nenhum avistamento registrado. Clique em "+ Novo Avistamento" para começar! 👣
+                <td colSpan="7" style={{ textAlign: "center", padding: 32, color: "var(--text-muted)" }}>
+                  Nenhum avistamento encontrado com os filtros atuais. 👣
                 </td>
               </tr>
             ) : (
-              sightings.map((s) => (
-                <>
-                  <tr key={s.id}>
+              filteredSightings.map((s) => (
+                <Fragment key={s.id}>
+                  <tr>
                     <td style={{ color: "var(--accent-cyan)", fontWeight: 700 }}>#{s.id}</td>
-                    <td style={{ color: "var(--text-primary)", fontWeight: 600 }}>{s.title}</td>
+                    <td style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                      {s.title}
+                      {(s.comments || []).length > 0 && <span className="comment-badge">{(s.comments || []).length}💬</span>}
+                    </td>
                     <td>{s.description.length > 40 ? s.description.substring(0, 40) + "..." : s.description}</td>
                     <td>{s.lat.toFixed(4)}</td>
                     <td>{s.lng.toFixed(4)}</td>
                     <td>{new Date(s.date).toLocaleDateString("pt-BR")}</td>
                     <td>{s.user?.name || "—"}</td>
                   </tr>
-                  <tr key={`${s.id}-comments`}>
+                  <tr>
                     <td colSpan="7" className="comment-cell">
                       <div className="comment-box">
                         <div className="comment-list">
@@ -186,7 +243,7 @@ export default function Sightings() {
                       </div>
                     </td>
                   </tr>
-                </>
+                </Fragment>
               ))
             )}
           </tbody>

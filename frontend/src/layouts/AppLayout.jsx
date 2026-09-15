@@ -31,9 +31,13 @@ export default function AppLayout() {
             <span className="nav-icon">02</span>
             <span>Avistamentos</span>
           </NavLink>
+          <NavLink to="/profile">
+            <span className="nav-icon">03</span>
+            <span>Perfil</span>
+          </NavLink>
           {user?.role === "ADMIN" && (
             <NavLink to="/admin">
-              <span className="nav-icon">03</span>
+              <span className="nav-icon">04</span>
               <span>Administração</span>
             </NavLink>
           )}
@@ -49,9 +53,13 @@ export default function AppLayout() {
         <div className="sidebar-user">
           <div className="user-info">
             <div className="user-avatar">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="user-avatar-image" />
+              ) : (
+                user?.name?.charAt(0).toUpperCase() || "U"
+              )}
             </div>
-            <div>
+            <div className="user-meta">
               <div className="user-name">{user?.name || "Usuário"}</div>
               <div className="user-email">{user?.email || ""}</div>
             </div>

@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Sightings from "./pages/Sightings";
+import Profile from "./pages/Profile";
 import AppLayout from "./layouts/AppLayout";
 import Admin from "./pages/Admin";
 
@@ -59,6 +60,7 @@ function App() {
             <Route index element={<Navigate to="/dashboard" />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="sightings" element={<Sightings />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
           </Route>
 

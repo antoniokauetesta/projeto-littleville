@@ -18,6 +18,8 @@ model User {
   email     String     @unique
   password  String
   role      Role       @default(USER)
+  bio       String     @default("")
+  avatarUrl String?    @default("")
   sightings Sighting[]
   comments  Comment[]
   createdAt DateTime   @default(now())

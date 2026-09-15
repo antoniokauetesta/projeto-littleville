@@ -33,6 +33,20 @@ export function AuthProvider({ children }) {
     return response.data.user;
   }
 
+  async function updateProfile(payload) {
+    const response = await api.put("/auth/profile", payload);
+    const nextUser = response.data.user;
+
+    try {
+      localStorage.setItem("@littleville:user", JSON.stringify(nextUser));
+    } catch (error) {
+      console.warn("Não foi possível salvar o usuário no localStorage.", error);
+    }
+
+    setUser(nextUser);
+    return nextUser;
+  }
+
   function signOut() {
     localStorage.removeItem("@littleville:user");
     localStorage.removeItem("@littleville:token");
@@ -40,7 +54,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ signed: !!user, user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ signed: !!user, user, loading, signIn, signUp, updateProfile, signOut }}>
       {children}
     </AuthContext.Provider>
   );

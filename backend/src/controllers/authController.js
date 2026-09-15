@@ -8,7 +8,15 @@ function createToken(userId) {
 }
 
 function publicUser(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    bio: user.bio || "",
+    avatarUrl: user.avatarUrl || "",
+    createdAt: user.createdAt,
+  };
 }
 
 // POST /auth/register
@@ -96,7 +104,7 @@ export async function login(req, res) {
 // PUT /auth/profile
 export async function updateProfile(req, res) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, bio, avatarUrl } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ error: "Nome e e-mail são obrigatórios" });
@@ -107,8 +115,16 @@ export async function updateProfile(req, res) {
       return res.status(400).json({ error: "E-mail já cadastrado" });
     }
 
-    const data = { name, email };
-    if (password) data.password = await bcrypt.hash(password, 10);
+    const data = {
+      name,
+      email,
+      bio: bio ?? "",
+      avatarUrl: avatarUrl ?? "",
+    };
+
+    if (password) {
+      data.password = await bcrypt.hash(password, 10);
+    }
 
     const user = await prisma.user.update({ where: { id: req.userId }, data });
     return res.json({ user: publicUser(user) });
